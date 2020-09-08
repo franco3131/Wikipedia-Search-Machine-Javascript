@@ -1,0 +1,46 @@
+
+body{
+  background-color: #2F4F4F ;
+}
+.random{
+  width:60px;
+  height:20px;
+  position:relative;
+  
+  
+}
+.searchBtn{
+  height:25px;
+  width:110px;
+  left:850px;
+  position:relative;
+  top:26px;
+  border-radius:5px;
+  
+  
+}
+#string{
+  border-radius:3px;
+  height:20px;
+  width:300px;
+  position:relative;
+  left:600px;
+}
+
+.block{
+ position:relative;
+ font-family:arial;
+  color:black;
+  margin:5px;
+  border-radius:6px;
+  padding:1px;
+  height:210PX; 
+  border:solid;
+background-color:white;
+}
+.block:hover{
+  border-color:white;
+}
+a{
+  text-decoration:none;
+}
