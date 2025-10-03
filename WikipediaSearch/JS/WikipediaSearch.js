@@ -1,57 +1,41 @@
 $(function () {
-  // Ensure container for results
-  if ($(".text").length === 0) {
-    $("body").append('<div class="text"></div>');
-  }
 
-  // If no form, wrap the input and add a button
-  if ($("#searchForm").length === 0) {
-    const $input = $("#string");
-    if ($input.length) {
-      $input.wrap('<form id="searchForm" action="about:blank" novalidate></form>');
-      const $btn = $('<button type="submit" class="searchBtn">Search</button>');
-      $input.after($btn);
-    }
-  }
+  // Handle form submit (works for Enter key too)
+  $("#searchForm").on("submit", function (e) {
+    e.preventDefault(); // stop full page reload
 
-  // Submit handler (works for Enter and click)
-  $(document).on("submit", "#searchForm", function (e) {
-    e.preventDefault();
-    const q = $("#string").val().trim();
-    if (!q) { $(".text").html("<em>Please enter a term.</em>"); return; }
+    var response = $("#string").val();
 
-    const url = "https://en.wikipedia.org/w/api.php";
-    const params = {
-      action: "query",
-      format: "json",
-      prop: "revisions|extracts|info",
-      titles: "Main Page",
-      generator: "search",
-      exlimit: 10,
-      exsentences: 5,
-      exintro: 1,
-      inprop: "url",
-      gsrsearch: q,
-      origin: "*"
-    };
+    if (!response) return;
 
-    $(".text").html("<em>Searching…</em>");
+    // Optional: show a neutral "Searching…" status
+    $(".text").text("Searching…");
 
-    $.getJSON(url, params)
-      .done(function (data) {
-        const pages = (data && data.query && data.query.pages) || {};
-        const list = Object.values(pages);
-        if (!list.length) { $(".text").html("<em>No results.</em>"); return; }
-        const html = list.map(p =>
-          `<a href="${p.fullurl}" target="_blank" rel="noopener">
-             <div class="block">${p.extract || "(no preview)"}</div>
-           </a>`
-        ).join("");
-        $(".text").html(html);
-      })
-      .fail(function (xhr) {
-        console.error("Wikipedia API error:", xhr.status, xhr.responseText);
-        $(".text").html("<em>Sorry, the search failed. Check console.</em>");
-      });
+    var url =
+      "https://en.wikipedia.org/w/api.php?action=query&format=json&prop=revisions%7Cextracts%7Cinfo" +
+      "&titles=Main+Page&generator=search&exlimit=10&exsentences=5" +
+      "&rvprop=&exintro=1&inprop=url&gsrsearch=" +
+      encodeURIComponent(response) +
+      "&callback=?";
+
+    $.getJSON(url, function (data) {
+      var html = "";
+      for (var prop in data.query.pages) {
+        html +=
+          "<a href='" +
+          data.query.pages[prop].fullurl +
+          "' target='_blank'><div class='block'>" +
+          data.query.pages[prop].extract +
+          "</div></a>";
+      }
+
+      $(".text").html(html || "No results found.");
+    });
   });
+
+  // Also allow explicit button click (calls form submit)
+  $(".searchBtn").on("click", function () {
+    $("#searchForm").trigger("submit");
+  });
+
 });
