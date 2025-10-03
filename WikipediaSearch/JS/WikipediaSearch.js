@@ -8,8 +8,7 @@ $(function () {
 
     if (!response) return;
 
-    // Optional: show a neutral "Searching…" status
-    $(".text").text("Searching…");
+
 
     var url =
       "https://en.wikipedia.org/w/api.php?action=query&format=json&prop=revisions%7Cextracts%7Cinfo" +
