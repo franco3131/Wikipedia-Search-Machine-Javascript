@@ -1,40 +1,40 @@
 $(function () {
-
-  // Handle form submit (works for Enter key too)
   $("#searchForm").on("submit", function (e) {
-    e.preventDefault(); // stop full page reload
+    e.preventDefault();
 
-    var response = $("#string").val();
+    const q = $("#string").val().trim();
+    if (!q) return;
 
-    if (!response) return;
+    $("#results").text("Searching…");       // neutral status
 
+    const url = "https://en.wikipedia.org/w/api.php?" + $.param({
+      action: "query",
+      format: "json",
+      origin: "*",                   // <-- CORS, not JSONP
+      formatversion: 2,
+      generator: "search",
+      gsrsearch: q,
+      prop: "extracts|info",
+      inprop: "url",
+      exintro: 1,
+      explaintext: 1,
+      exsentences: 3,
+      gsrnamespace: 0,
+      gsrlimit: 10
+    });
 
+    $.getJSON(url).done(data => {
+      const pages = (data.query && data.query.pages) || [];
+      const html = pages.map(p => `
+        <a href="${p.fullurl}" target="_blank" rel="noopener">
+          <div class="block">${p.extract || "(no extract)"}</div>
+        </a>`).join("");
 
-    var url =
-      "https://en.wikipedia.org/w/api.php?action=query&format=json&prop=revisions%7Cextracts%7Cinfo" +
-      "&titles=Main+Page&generator=search&exlimit=10&exsentences=5" +
-      "&rvprop=&exintro=1&inprop=url&gsrsearch=" +
-      encodeURIComponent(response) +
-      "&callback=?";
-
-    $.getJSON(url, function (data) {
-      var html = "";
-      for (var prop in data.query.pages) {
-        html +=
-          "<a href='" +
-          data.query.pages[prop].fullurl +
-          "' target='_blank'><div class='block'>" +
-          data.query.pages[prop].extract +
-          "</div></a>";
-      }
-
-      $(".text").html(html || "No results found.");
+      $("#results").html(html || "No results found.");
+    }).fail(() => {
+      $("#results").text("Search failed. Please try again.");
     });
   });
 
-  // Also allow explicit button click (calls form submit)
-  $(".searchBtn").on("click", function () {
-    $("#searchForm").trigger("submit");
-  });
-
+  $(".searchBtn").on("click", () => $("#searchForm").trigger("submit"));
 });
